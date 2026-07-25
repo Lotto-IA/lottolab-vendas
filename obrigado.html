@@ -5,22 +5,119 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pagamento confirmado - LottoLab</title>
 <style>
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(1200px 600px at 10% -10%, rgba(34,197,94,.12), transparent 60%), #0b1220;
-    color:#eef2ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:center;padding:20px;}
-  .box{max-width:460px;}
-  .clover{font-size:52px;filter:drop-shadow(0 0 14px rgba(34,197,94,.5));}
-  h1{font-size:24px;margin:14px 0 10px;}
-  p{color:#94a3b8;font-size:15px;line-height:1.6;}
-  a.btn{display:inline-block;margin-top:22px;padding:14px 26px;border-radius:12px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#052e13;font-weight:800;text-decoration:none;}
+  :root{
+    --bg:#0b1220; --card:#111b30; --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.16);
+    --text:#eef2ff; --muted:#94a3b8; --green:#22c55e; --green-dark:#16a34a; --gold:#facc15;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;
+    background:radial-gradient(1200px 600px at 10% -10%, rgba(34,197,94,.12), transparent 60%), var(--bg);
+    color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:30px 16px 60px;}
+  .wrap{max-width:520px;margin:0 auto;text-align:center;}
+  .clover{font-size:48px;filter:drop-shadow(0 0 14px rgba(34,197,94,.5));margin-bottom:6px;}
+  h1{font-size:24px;margin:8px 0 6px;}
+  p{color:var(--muted);font-size:14.5px;line-height:1.6;}
+  .plano-nome{color:var(--green);font-weight:700;}
+
+  .codigo-box{background:var(--card);border:1px solid var(--border-strong);border-radius:16px;padding:20px;margin:22px 0 8px;}
+  .codigo-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+  .codigo-valor{font-family:'Courier New',monospace;font-size:32px;font-weight:800;letter-spacing:6px;color:var(--gold);word-break:break-all;}
+  .btn-copiar{margin-top:12px;background:transparent;border:1px solid var(--border-strong);color:var(--text);padding:9px 18px;border-radius:10px;font-size:13px;cursor:pointer;}
+  .copiado{color:var(--green);font-size:12.5px;margin-top:8px;display:none;}
+
+  .tabs{display:flex;gap:8px;margin:26px 0 14px;}
+  .tab-btn{flex:1;padding:11px;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;}
+  .tab-btn.active{background:linear-gradient(135deg,var(--green),var(--green-dark));color:#052e13;border-color:transparent;}
+
+  .steps{text-align:left;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;display:none;}
+  .steps.active{display:block;}
+  .steps ol{margin:0;padding-left:20px;color:var(--text);font-size:14px;line-height:1.9;}
+  .steps li b{color:var(--green);}
+
+  a.btn{display:inline-block;margin-top:26px;padding:15px 28px;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:#052e13;font-weight:800;text-decoration:none;font-size:15px;}
+  .foot-note{margin-top:22px;font-size:12px;color:#7c8aa5;}
 </style>
 </head>
 <body>
-  <div class="box">
+  <div class="wrap">
     <div class="clover">🍀</div>
     <h1>Pagamento confirmado!</h1>
-    <p>Seu acesso ao LottoLab foi liberado. Em instantes você recebe as instruções de acesso pelo WhatsApp/e-mail cadastrado.</p>
-    <a class="btn" href="https://lotto-ia.github.io/Lottojogos/">Abrir o LottoLab</a>
+    <p>Seu plano <span class="plano-nome" id="planoNomeTxt">LottoLab</span> já está ativo. Use o código abaixo para liberar seu acesso no aplicativo.</p>
+
+    <div class="codigo-box">
+      <div class="codigo-label">Seu código de ativação</div>
+      <div class="codigo-valor" id="codigoTxt">--------</div>
+      <button class="btn-copiar" onclick="copiarCodigo()">📋 Copiar código</button>
+      <div class="copiado" id="copiadoMsg">Copiado!</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabAndroid" onclick="mostrarTab('android')">🤖 Android</button>
+      <button class="tab-btn" id="tabIos" onclick="mostrarTab('ios')">🍎 iPhone / iPad</button>
+    </div>
+
+    <div class="steps active" id="stepsAndroid">
+      <ol>
+        <li>Toque no botão <b>"Abrir o LottoLab"</b> abaixo.</li>
+        <li>No menu do navegador (⋮), toque em <b>"Instalar aplicativo"</b> ou <b>"Adicionar à tela inicial"</b>.</li>
+        <li>Abra o LottoLab pelo ícone instalado.</li>
+        <li>Toque em <b>"Já comprei — ativar código"</b> na tela inicial.</li>
+        <li>Cole o código acima e confirme.</li>
+      </ol>
+    </div>
+    <div class="steps" id="stepsIos">
+      <ol>
+        <li>Toque no botão <b>"Abrir o LottoLab"</b> abaixo (use o Safari).</li>
+        <li>Toque no ícone de <b>Compartilhar</b> (quadrado com seta) na barra do Safari.</li>
+        <li>Escolha <b>"Adicionar à Tela de Início"</b>.</li>
+        <li>Abra o LottoLab pelo ícone instalado.</li>
+        <li>Toque em <b>"Já comprei — ativar código"</b> e cole o código acima.</li>
+      </ol>
+    </div>
+
+    <a class="btn" id="abrirBtn" href="https://lotto-ia.github.io/Lottojogos/">Abrir o LottoLab agora</a>
+    <p class="foot-note">Guarde este código — ele fica salvo automaticamente no aparelho após ativado, mas você pode precisar dele para ativar em outro dispositivo.</p>
   </div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://rjiydewkobfbevzfrxbz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqaXlkZXdrb2JmYmV2emZyeGJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0ODEyOTksImV4cCI6MjA4OTA1NzI5OX0.QvooykPpjtAptqIYG2cIsnTv7yZeNyNFQ5QirgaKeQ8";
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const params = new URLSearchParams(window.location.search);
+const codigo = params.get("codigo") || "";
+document.getElementById("codigoTxt").textContent = codigo || "não encontrado";
+
+async function carregar(){
+  if(!codigo) return;
+  const { data, error } = await sb.from("leads_vendas").select("plano_nome").eq("codigo_acesso", codigo).single();
+  if(!error && data?.plano_nome){
+    document.getElementById("planoNomeTxt").textContent = data.plano_nome;
+  }
+}
+carregar();
+
+function copiarCodigo(){
+  navigator.clipboard.writeText(codigo).then(()=>{
+    const msg = document.getElementById("copiadoMsg");
+    msg.style.display = "block";
+    setTimeout(()=> msg.style.display = "none", 2000);
+  });
+}
+
+function mostrarTab(qual){
+  document.getElementById("tabAndroid").classList.toggle("active", qual==="android");
+  document.getElementById("tabIos").classList.toggle("active", qual==="ios");
+  document.getElementById("stepsAndroid").classList.toggle("active", qual==="android");
+  document.getElementById("stepsIos").classList.toggle("active", qual==="ios");
+}
+
+// detecta automaticamente a plataforma
+if(/iphone|ipad|ipod/i.test(navigator.userAgent)){
+  mostrarTab("ios");
+}
+</script>
 </body>
 </html>
