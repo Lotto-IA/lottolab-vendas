@@ -170,7 +170,7 @@
   <p class="lead">Análise estatística avançada das 10 principais loterias da CAIXA. Monte estratégias, avalie seus jogos e jogue com informação de verdade — sem prometer milagres.</p>
   <div class="badges">
     <span class="pill">📡 Dados oficiais ao vivo</span>
-    <span class="pill">🎯 10 modalidades</span>
+    <span class="pill">🎯 8 modalidades</span>
     <span class="pill">🔒 Sem cadastro complicado</span>
     <span class="pill">📱 Funciona como app (PWA)</span>
   </div>
@@ -378,7 +378,7 @@ const PRODUTO = "lottolab";
 const GRUPOS = {
   basico:        { titulo:"Básico",        desc:"1 modalidade à sua escolha (ex: Lotofácil ou Mega-Sena)", features:["Painel completo da modalidade escolhida","Laboratório de estratégias com pesos","Avaliação de jogos (LottoScore)","Centro de estudos incluso"] },
   intermediario: { titulo:"Intermediário", desc:"As modalidades mais jogadas: Lotofácil + Mega-Sena",       features:["Tudo do plano Básico","2 modalidades liberadas","Comparação de estratégias entre as duas loterias"], highlight:true, tag:"Mais escolhido" },
-  completo:      { titulo:"Completo",      desc:"Todas as 10 modalidades, para sempre",                     features:["Tudo do plano Intermediário","Todas as 10 modalidades liberadas","Acesso vitalício — pagamento único","Atualizações futuras inclusas"] },
+  completo:      { titulo:"Completo",      desc:"Todas as 8 modalidades, para sempre",                     features:["Tudo do plano Intermediário","Todas as 8 modalidades liberadas","Acesso vitalício — pagamento único","Atualizações futuras inclusas"] },
 };
 const ORDEM = ["basico","intermediario","completo"];
 
@@ -420,7 +420,7 @@ async function carregarPlanos(){
     if (opcoes.length > 1){
       periodosHtml = '<div class="period-toggle">' + opcoes.map((o,i)=>{
         const label = o.duracao_meses ? o.duracao_meses+"M" : "Vitalício";
-        return `<button type="button" class="period-btn${i===0?' active':''}" data-plano="${o.id}" data-valor="${o.valor}" onclick="selecionarPeriodo(this)">${label}</button>`;
+        return `<button type="button" class="period-btn${i===0?' active':''}" data-plano="${o.id}" data-valor="${o.valor}" data-duracao="${o.duracao_meses || ''}" onclick="selecionarPeriodo(this)">${label}</button>`;
       }).join("") + "</div>";
     }
 
@@ -457,6 +457,8 @@ window.selecionarPeriodo = function(btn){
   const priceEl = card.querySelector(".price");
   priceEl.setAttribute("data-plano-ativo", btn.dataset.plano);
   priceEl.childNodes[0].textContent = "R$ " + Number(btn.dataset.valor).toFixed(2).replace(".", ",") + " ";
+  const smallEl = priceEl.querySelector("small");
+  if (smallEl) smallEl.textContent = btn.dataset.duracao ? `por ${btn.dataset.duracao} meses` : "pagamento único";
 };
 
 window.escolherPlano = function(grupo){
