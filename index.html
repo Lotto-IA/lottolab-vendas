@@ -350,7 +350,7 @@
 const SUPABASE_URL = "https://rjiydewkobfbevzfrxbz.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqaXlkZXdrb2JmYmV2emZyeGJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0ODEyOTksImV4cCI6MjA4OTA1NzI5OX0.QvooykPpjtAptqIYG2cIsnTv7yZeNyNFQ5QirgaKeQ8";
 const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const PRODUTO = "lottolab";
 
 /* ===================== SLIDER ===================== */
@@ -383,7 +383,7 @@ const GRUPOS = {
 const ORDEM = ["basico","intermediario","completo"];
 
 async function carregarPlanos(){
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from("planos")
     .select("*")
     .eq("ativo", true)
@@ -511,7 +511,7 @@ window.gerarPagamento = async function(){
   if(!planoId){ alert("Selecione um plano"); return; }
   if(!aceite){ alert("Aceite os termos"); return; }
 
-  const { error } = await supabase.from("leads_vendas").insert([{
+  const { error } = await sb.from("leads_vendas").insert([{
     id: leadId, nome, cpf, email, whatsapp,
     produto: PRODUTO,
     vendedor: "direto",
@@ -559,7 +559,7 @@ window.gerarPagamento = async function(){
   }, 1000);
 
   const verificacao = setInterval(async ()=>{
-    const { data, error } = await supabase.from("leads_vendas").select("status_pagamento").eq("id", leadId).single();
+    const { data, error } = await sb.from("leads_vendas").select("status_pagamento").eq("id", leadId).single();
     if(!error && data?.status_pagamento === "pago"){
       clearInterval(timer); clearInterval(verificacao);
       window.location.href = "obrigado.html";
