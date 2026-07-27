@@ -357,7 +357,8 @@
       <option value="maismilionaria">+Milionária</option>
     </select>
 
-    <input type="text" id="cupom" placeholder="Cupom (opcional)" />
+    <input type="text" id="cupom" placeholder="Cupom (opcional)" style="text-transform:uppercase;" />
+    <div id="cupomMsg" style="font-size:12.5px;margin:-6px 0 10px;min-height:14px;"></div>
 
     <div class="termos-box">
       <p class="termos-titulo">⚠ NECESSÁRIO LER E ACEITAR OS TERMOS DE USO</p>
@@ -584,6 +585,46 @@ check.addEventListener("change", function(){
   btn.disabled = !check.checked;
 });
 
+/* ===================== CUPOM DE DESCONTO ===================== */
+let cupomAplicado = null; // guarda a linha da tabela `cupons` quando válido
+
+async function validarCupom(){
+  const input = document.getElementById("cupom");
+  const msgEl = document.getElementById("cupomMsg");
+  const codigo = input.value.trim().toUpperCase();
+  input.value = codigo;
+  cupomAplicado = null;
+  if(!codigo){ msgEl.textContent = ""; return; }
+
+  const selectPlano = document.getElementById("plano");
+  const planoOpt = selectPlano.options[selectPlano.selectedIndex];
+  const planoGrupo = planoOpt?.dataset.grupo;
+
+  const { data, error } = await sb.from("cupons").select("*")
+    .eq("codigo", codigo).eq("ativo", true).eq("produto", "lottolab").maybeSingle();
+
+  if(error || !data){
+    msgEl.textContent = "Cupom inválido ou expirado.";
+    msgEl.style.color = "#ef4444";
+    return;
+  }
+  if(data.plano_grupo && data.plano_grupo !== planoGrupo){
+    msgEl.textContent = "Este cupom não é válido para o plano selecionado.";
+    msgEl.style.color = "#ef4444";
+    return;
+  }
+  if(data.usos_atuais >= data.usos_maximos){
+    msgEl.textContent = "Este cupom já foi utilizado.";
+    msgEl.style.color = "#ef4444";
+    return;
+  }
+  cupomAplicado = data;
+  msgEl.textContent = `Cupom aplicado! Valor com desconto: R$ ${Number(data.valor_fixo).toFixed(2).replace(".", ",")}`;
+  msgEl.style.color = "#22c55e";
+}
+document.getElementById("cupom")?.addEventListener("blur", validarCupom);
+document.getElementById("plano")?.addEventListener("change", validarCupom);
+
 window.gerarPagamento = async function(){
   const nome = document.getElementById("nome").value;
   const cpf = document.getElementById("cpf").value;
@@ -594,9 +635,11 @@ window.gerarPagamento = async function(){
   const planoOpt = selectPlano.options[selectPlano.selectedIndex];
   const planoNome = planoOpt?.dataset.nome;
   const planoGrupo = planoOpt?.dataset.grupo;
-  const valor = parseFloat(planoOpt?.dataset.valor);
+  const cupom = document.getElementById("cupom").value.trim().toUpperCase();
+  if(cupom && (!cupomAplicado || cupomAplicado.codigo !== cupom)){ await validarCupom(); }
+  const cupomValido = cupom && cupomAplicado && cupomAplicado.codigo === cupom;
+  const valor = cupomValido ? Number(cupomAplicado.valor_fixo) : parseFloat(planoOpt?.dataset.valor);
   const modalidadeEscolhida = document.getElementById("modalidade").value;
-  const cupom = document.getElementById("cupom").value;
   const aceite = document.getElementById("aceite").checked;
   const leadId = crypto.randomUUID();
   const codigoAcesso = gerarCodigoAcesso();
@@ -607,6 +650,7 @@ window.gerarPagamento = async function(){
   if(whatsapp.length < 14){ alert("Digite um WhatsApp válido"); return; }
   if(!planoId){ alert("Selecione um plano"); return; }
   if(planoGrupo === "basico" && !modalidadeEscolhida){ alert("Escolha a modalidade do seu plano Básico"); return; }
+  if(cupom && !cupomValido){ alert("O cupom digitado não é válido para este plano. Remova-o ou corrija para continuar."); return; }
   if(!aceite){ alert("Aceite os termos"); return; }
 
   const { error } = await sb.from("leads_vendas").insert([{
@@ -663,6 +707,9 @@ window.gerarPagamento = async function(){
     const { data, error } = await sb.from("leads_vendas").select("status_pagamento").eq("id", leadId).single();
     if(!error && data?.status_pagamento === "pago"){
       clearInterval(timer); clearInterval(verificacao);
+      if(cupomValido){
+        await sb.from("cupons").update({ usos_atuais: cupomAplicado.usos_atuais + 1 }).eq("id", cupomAplicado.id);
+      }
       window.location.href = "obrigado.html?codigo="+encodeURIComponent(codigoAcesso);
     }
   }, 3000);
